@@ -1,0 +1,6 @@
+[
+  {"id": "srv-a", "os": "linux", "cpu": 4, "ram": 8, "storage": 100,
+   "role": "db", "dependencies": []},
+  {"id": "srv-b", "os": "linux", "cpu": 2, "ram": 4, "storage": 50,
+   "role": "web", "dependencies": ["db-001"]}
+]

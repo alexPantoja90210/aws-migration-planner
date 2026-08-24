@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets and environment
+.env
+
+# Generated output — evidence belongs in the issue tracker, not in the repo
+migration_report.json
+docs/migration_report.json
+
+# Terraform (arrives with the target module)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+tfplan
+*.tfplan
+plan-*.txt
+
+# OS
+.DS_Store
+Thumbs.db

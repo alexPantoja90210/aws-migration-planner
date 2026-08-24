@@ -1,0 +1,4 @@
+[
+  {"id": "srv-a", "os": "linux", "cpu": 4, "ram": 8, "storage": 100,
+   "role": "quantum-mainframe", "dependencies": []}
+]

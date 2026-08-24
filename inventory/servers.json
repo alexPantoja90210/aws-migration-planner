@@ -1,0 +1,122 @@
+[
+  {
+    "id": "srv-002",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "db",
+    "dependencies": [],
+    "ports": [5432],
+    "db_size_gb": 20,
+    "shared_folders": ["/var/lib/postgresql/data"]
+  },
+  {
+    "id": "srv-005",
+    "os": "linux",
+    "cpu": 8,
+    "ram": 16,
+    "storage": 500,
+    "role": "db",
+    "dependencies": [],
+    "ports": [1521],
+    "db_size_gb": 120,
+    "shared_folders": ["/u01/app/oracle"]
+  },
+  {
+    "id": "srv-010",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 200,
+    "role": "db",
+    "dependencies": [],
+    "ports": [5432],
+    "db_size_gb": 50,
+    "shared_folders": ["/var/lib/postgresql"]
+  },
+  {
+    "id": "srv-003",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 200,
+    "role": "file",
+    "dependencies": [],
+    "ports": [445],
+    "db_size_gb": 0,
+    "shared_folders": ["\\\\srv-003\\shared"]
+  },
+  {
+    "id": "srv-006",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 150,
+    "role": "print",
+    "dependencies": [],
+    "ports": [515],
+    "db_size_gb": 0,
+    "shared_folders": ["\\\\srv-006\\print"]
+  },
+  {
+    "id": "srv-008",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 120,
+    "role": "file",
+    "dependencies": [],
+    "ports": [445],
+    "db_size_gb": 0,
+    "shared_folders": ["/mnt/shared"]
+  },
+  {
+    "id": "srv-001",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "web",
+    "dependencies": ["srv-002"],
+    "ports": [80, 443],
+    "db_size_gb": 5,
+    "shared_folders": ["/var/www/html"]
+  },
+  {
+    "id": "srv-004",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 80,
+    "role": "web",
+    "dependencies": ["srv-005", "srv-008"],
+    "ports": [80],
+    "db_size_gb": 3,
+    "shared_folders": ["/opt/app"]
+  },
+  {
+    "id": "srv-009",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 40,
+    "role": "web",
+    "dependencies": ["srv-010"],
+    "ports": [80],
+    "db_size_gb": 1,
+    "shared_folders": ["/var/www"]
+  },
+  {
+    "id": "srv-007",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 60,
+    "role": "app",
+    "dependencies": ["srv-001", "srv-004"],
+    "ports": [8080],
+    "db_size_gb": 2,
+    "shared_folders": ["/srv/app"]
+  }
+]
