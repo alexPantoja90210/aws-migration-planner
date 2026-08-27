@@ -18,9 +18,9 @@ What is entirely real, and is what this project does:
 
 | Layer | Status |
 |---|---|
-| Inventory validated against a contract | this story |
-| Dependency graph, cycle detection, wave ordering | next |
-| Target sizing and monthly cost estimate | next |
+| Inventory validated against a contract | done |
+| Dependency graph, cycle detection, wave ordering | done |
+| Target sizing and monthly cost estimate | done |
 | GREEN/RED gate wired into CI | next |
 
 **The line: the decision layer is real. The data-movement layer is not
@@ -54,6 +54,79 @@ Note what the contract deliberately does **not** check: dependency *cycles*. A
 cycle is made of ids that all exist, so it satisfies the contract. Detecting it
 is the planner's job, and it belongs with the graph.
 
+## Migration waves
+
+The planner groups servers into ordered waves. The invariant, stated exactly as
+the code implements it:
+
+> **For every server S placed in wave N, every dependency of S sits in a wave
+> strictly earlier than N.**
+
+Two functions are kept deliberately apart:
+
+* `plan_waves(inventory)` **builds** the plan — a topological layering, with
+  ties inside a wave broken by id so the same inventory always yields the same
+  plan, whatever order the file happens to be in.
+* `verify_waves(inventory, waves)` **checks** a plan — any plan, from anywhere —
+  against the inventory alone. It never calls `plan_waves`.
+
+That separation is the point. A checker that regenerates the plan to compare
+against would only ever confirm that the generator agrees with itself. The
+selftest hands `verify_waves` a deliberately corrupted plan — two servers
+swapped across waves, nothing else changed — and requires it to go red.
+
+### Cycles
+
+A cycle is made of ids that all exist, so it satisfies the inventory contract
+without trouble. It is the planner's problem, not the contract's.
+
+`find_cycle` returns the actual path, and `plan_waves` refuses to produce a plan:
+
+```
+CycleError: the dependency graph has a cycle and cannot be laid out in waves:
+srv-a -> srv-c -> srv-b -> srv-a
+```
+
+Naming the path matters. "The graph has a cycle" sends whoever reads it hunting.
+
+## Target sizing and cost
+
+Every server gets a target instance type and an estimated monthly cost, both
+derived from the inventory and a dated price catalog. The rule, stated once and
+applied everywhere:
+
+> **The recommended instance must have at least as many vCPU and at least as
+> much RAM as the source server. Never less. Among the types that satisfy that,
+> the cheapest wins.**
+
+`verify_sizing` checks a sized plan without ever re-running the recommender: it
+takes each recommendation as given and asks whether it respects headroom and
+whether the arithmetic adds up. The selftest hands it a plan with one target
+swapped for something smaller, and requires it to go red.
+
+That the recommender picks the *cheapest* fitting type is a separate claim, and
+it gets a separate assertion — checking it inside the verifier would mean
+re-running the very thing under test.
+
+### Two limits, stated plainly
+
+**The prices are a snapshot, not a live query.** `pricing/ec2-us-east-1.json`
+carries its region, its date, its source URL and a `verified` flag. The gate
+does not check whether the prices are *correct* — nothing in this repo can know
+that. It checks that the file says where they came from and whether a human has
+confirmed them. **A price with no date is not an estimate.**
+
+**Sizing from declared CPU and RAM is a starting point, not a final
+recommendation.** With no real utilisation data this sizes against what was
+*provisioned*, and on-prem provisioning is habitually generous. The figure means
+"the same shape, in the cloud" — the right baseline to begin a migration from,
+and the wrong number to stop at.
+
+That second limit is the seam with the sibling project: the
+[FinOps Guardian](https://github.com/alexPantoja90210/aws-finops-guardian)
+reads actual CloudWatch utilisation from a live account. **This one predicts,
+that one measures.**
+
 ## The example inventory
 
 `inventory/servers.json` holds **10 servers** across three dependency levels:
@@ -61,11 +134,16 @@ six with no dependencies, three web servers on top of them, and one app server
 on top of those. The count in this sentence and the count in the file are the
 same number, and the selftest asserts the file satisfies its own contract.
 
+The depth is not decoration. **On a flat graph the wave invariant holds
+trivially, and a test that checks it would prove nothing** — the same trap that
+hid a defect in the sibling project until a fixture with more than one item
+exposed it.
+
 ## Run it
 
 ```bash
 python evals.py --selftest   # free: validates the checks themselves
-python planner.py            # loads the inventory and prints what it found
+python planner.py            # waves, target sizing and estimated monthly cost
 ```
 
 The selftest makes no network calls and needs no credentials, so it runs in CI

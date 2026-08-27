@@ -1,10 +1,11 @@
 """
 Migration Planner — the loader.
 
-Right now this module only loads and validates. The dependency graph, the wave
-ordering, the rightsizing and the cost estimate arrive in later stories; each
-of them will read the inventory through `load_inventory`, so none of them can
-ever run on data that does not meet the contract.
+Loads the inventory, requires it to meet the contract, lays it out in migration
+waves, and sizes the target with an estimated monthly cost.
+
+Everything downstream reads the inventory through `load_inventory`, so nothing
+can ever run on data that does not meet the contract.
 """
 import json
 
@@ -13,6 +14,8 @@ from inventory_contract import (
     describe_problems,
     validate_inventory,
 )
+from sizing import load_catalog, size_plan, verify_sizing
+from waves import plan_waves, verify_waves
 
 INVENTORY = []
 
@@ -37,7 +40,41 @@ def load_inventory(path="inventory/servers.json"):
 
 if __name__ == "__main__":
     servers = load_inventory()
-    print("Inventory loaded: %d servers, contract satisfied." % len(servers))
-    for server in servers:
-        depends_on = ", ".join(server["dependencies"]) or "-"
-        print("  %-8s %-6s depends on: %s" % (server["id"], server["role"], depends_on))
+    print("Inventory loaded: %d servers, contract satisfied.\n" % len(servers))
+
+    waves = plan_waves(servers)
+    role_of = {server["id"]: server["role"] for server in servers}
+    needs_of = {server["id"]: server["dependencies"] for server in servers}
+
+    catalog = load_catalog()
+    sized = size_plan(servers, waves, catalog)
+
+    for wave in sized["waves"]:
+        print("Wave %d — %d server(s), $%s/month"
+              % (wave["wave"], len(wave["servers"]), wave["wave_total_usd"]))
+        for entry in wave["servers"]:
+            source = entry["source"]
+            depends_on = ", ".join(needs_of[entry["id"]]) or "nothing"
+            print("  %-8s %-6s %dvCPU/%dGiB/%dGB -> %-11s $%7.2f   after: %s"
+                  % (entry["id"], role_of[entry["id"]], source["cpu"], source["ram"],
+                     source["storage"], entry["target"], entry["cost"]["total_usd"],
+                     depends_on))
+        print("")
+
+    print("Estimated target cost: $%s USD/month  (%s, on-demand, prices dated %s)"
+          % (sized["total_monthly_usd"], sized["region"], sized["pricing_snapshot_date"]))
+
+    # The plan is checked before it is presented, using the same verifiers the
+    # eval gate uses. Printing a plan without checking it is how a planner
+    # starts being trusted for the wrong reasons.
+    problems = verify_waves(servers, waves) + verify_sizing(servers, sized, catalog)
+    print("Invariants: dependencies migrate first, and no target is smaller "
+          "than its source — %s" % ("HOLD" if not problems else "VIOLATED"))
+    for problem in problems:
+        print("  - %s" % problem)
+
+    if not catalog["verified"]:
+        print("")
+        print("WARNING: the price catalog declares verified=false. The figure above is")
+        print("         arithmetic over numbers nobody has checked yet. See")
+        print("         %s" % catalog["source"])
