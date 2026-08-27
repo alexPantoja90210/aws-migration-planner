@@ -77,12 +77,21 @@ def monthly_cost(server, instance_type, catalog):
     }
 
 
-def size_plan(inventory, waves, catalog):
+def size_plan(inventory, waves, catalog, errors=None):
     """
     Attach a target type and a cost to every server, grouped by wave.
 
     Every figure here is computed. None of them is written by hand, and none of
     them comes from anywhere but the inventory and the dated catalog.
+
+    If `errors` is a list, a server the catalog cannot host is appended to it
+    with its cause and left out of the plan, instead of aborting the whole run.
+    With `errors=None` the behaviour is the original one: the first unsizeable
+    server raises.
+
+    Partial is not the same as silent. A server left out of the plan MUST turn
+    up in `errors` — that pairing is what `verify_report` checks, and it is what
+    stops a planner from quietly losing a server.
     """
     by_id = {server["id"]: server for server in inventory}
     sized_waves = []
@@ -93,7 +102,14 @@ def size_plan(inventory, waves, catalog):
         wave_total = 0.0
         for server_id in wave:
             server = by_id[server_id]
-            instance_type = recommend_instance(server, catalog)
+            try:
+                instance_type = recommend_instance(server, catalog)
+            except SizingError as error:
+                if errors is None:
+                    raise
+                errors.append({"id": server_id, "stage": "sizing",
+                               "reason": str(error)})
+                continue
             cost = monthly_cost(server, instance_type, catalog)
             entries.append({
                 "id": server_id,
@@ -119,9 +135,13 @@ def size_plan(inventory, waves, catalog):
     }
 
 
-def verify_sizing(inventory, sized, catalog):
+def verify_sizing(inventory, sized, catalog, excused=()):
     """
     Check a sized plan. Never calls recommend_instance.
+
+    `excused` lists the ids that failed sizing and were recorded as errors. They
+    are allowed to be absent from the plan — but they must not ALSO appear in
+    it. Being both planned and failed is a contradiction, and it is checked.
 
     It takes the plan as given and asks two questions the plan must answer on
     its own terms: does every recommendation respect the headroom rule, and does
@@ -182,7 +202,11 @@ def verify_sizing(inventory, sized, catalog):
                         % (sized["total_monthly_usd"], round(running_total, 2)))
 
     sized_ids = {entry["id"] for wave in sized["waves"] for entry in wave["servers"]}
-    for server_id in sorted(set(by_id) - sized_ids):
+    excused_ids = set(excused)
+    for server_id in sorted(set(by_id) - sized_ids - excused_ids):
         problems.append("%s is in the inventory but was never sized" % server_id)
+    for server_id in sorted(sized_ids & excused_ids):
+        problems.append("%s is reported as a sizing error and also appears in "
+                        "the plan — a server cannot be both" % server_id)
 
     return problems

@@ -11,8 +11,15 @@ dishonest: it starts passing for reasons nobody intended.
 
   CONTRACT_CHECKS — is the INPUT usable at all.
   PLAN_CHECKS     — does a produced plan hold up against the inventory.
-  SIZING_CHECKS   — does the sized plan respect the headroom rule and add up,
-                    and does the price catalog say where its numbers came from.
+  SIZING_CHECKS   — does the sized plan respect the headroom rule and add up.
+  PROVENANCE_CHECKS — does the price catalog say where its numbers came from.
+  REPORT_CHECKS   — is every server in the inventory accounted for: planned, or
+                    failed with a named reason. Never neither, never both.
+
+The rule that governs a family: a deliberately corrupted artifact must turn
+EVERY check of its family RED. A check that cannot fail for the reason its
+family exists does not belong in it — that is why provenance was moved out of
+SIZING_CHECKS, and it is the defect IA-30 found the last time it happened.
 
 Later stories extend this file rather than adding a second test script: two
 copies of the same test drift apart, which is the lesson this project already
@@ -22,6 +29,7 @@ import json
 import sys
 
 from inventory_contract import validate_inventory
+from planner import build_report, verify_report
 from sizing import (
     SizingError,
     load_catalog,
@@ -34,7 +42,9 @@ from waves import CycleError, find_cycle, plan_waves, verify_waves
 
 CONTRACT_CHECKS = ("contract-ok",)
 PLAN_CHECKS = ("plan-valid",)
-SIZING_CHECKS = ("sizing-valid", "pricing-declared")
+SIZING_CHECKS = ("sizing-valid",)
+PROVENANCE_CHECKS = ("pricing-declared",)
+REPORT_CHECKS = ("report-valid", "every-server-accounted")
 
 PROVENANCE_FIELDS = ("region", "snapshot_date", "source", "verified")
 
@@ -54,20 +64,53 @@ def check_plan(inventory, waves):
     return {"plan-valid": not verify_waves(inventory, waves)}
 
 
-def check_sizing(inventory, sized, catalog):
+def check_sizing(inventory, sized, catalog, excused=()):
     """
     Score a sized plan. Like check_plan, it never regenerates what it measures:
     the recommendation comes in from outside and is judged against the source
     server and the catalog.
-
-    `pricing-declared` does NOT assert that the prices are right — nothing in
-    this repo can know that. It asserts the file says where they came from and
-    whether a human has checked them. An undated price is not an estimate.
     """
     return {
-        "sizing-valid": not verify_sizing(inventory, sized, catalog),
+        "sizing-valid": not verify_sizing(inventory, sized, catalog,
+                                          excused=excused),
+    }
+
+
+def check_provenance(catalog):
+    """
+    Does the catalog say where its numbers came from?
+
+    This does NOT assert the prices are correct — nothing in this repo can know
+    that. It asserts the file declares its region, its date, its source, and
+    whether a human has checked it. An undated price is not an estimate.
+
+    It has its own family on purpose. Left inside SIZING_CHECKS it could never
+    go RED for the reason that family exists, which silently breaks the rule
+    that a corrupted plan turns its whole family RED.
+    """
+    return {
         "pricing-declared": all(field in catalog for field in PROVENANCE_FIELDS)
                             and isinstance(catalog["verified"], bool),
+    }
+
+
+def check_report(inventory, report, catalog):
+    """
+    Score a whole report: plan, sizing, and the servers that could not be sized.
+
+    `every-server-accounted` is computed here from the sets themselves instead
+    of being delegated to verify_report. Two independent routes to the same
+    property is the point — if one of them is wrong, the selftest says so
+    instead of agreeing with itself.
+    """
+    planned = {entry["id"] for wave in report["sizing"]["waves"]
+               for entry in wave["servers"]}
+    failed = {entry.get("id") for entry in report["errors"]}
+    expected = {server["id"] for server in inventory}
+    return {
+        "report-valid": not verify_report(inventory, report, catalog),
+        "every-server-accounted": (planned | failed) == expected
+                                  and not (planned & failed),
     }
 
 
@@ -167,15 +210,24 @@ def selftest():
     sized = size_plan(real, waves, catalog)
 
     good_sizing = check_sizing(real, sized, catalog)
+    good_provenance = check_provenance(catalog)
     assert all(good_sizing.values()), \
         "self-test failed: the generated sizing should hold up -> %s" % good_sizing
+    assert all(good_provenance.values()), \
+        "self-test failed: the catalog must declare its provenance -> %s" % good_provenance
+
+    # Provenance has its own negative: strip the date and the family must go RED.
+    undated = json.loads(json.dumps(catalog))
+    undated.pop("snapshot_date")
+    assert not any(check_provenance(undated).values()), \
+        "self-test failed: a catalog with no date must be RED"
 
     # The negative test the story asks for: a target smaller than the source.
     # Nothing else is touched — same servers, same waves, one wrong instance type.
     undersized = json.loads(json.dumps(sized))
     undersized["waves"][0]["servers"][0]["target"] = "t3.micro"
-    assert not check_sizing(real, undersized, catalog)["sizing-valid"], \
-        "self-test failed: a target smaller than the source must be RED"
+    assert not any(check_sizing(real, undersized, catalog).values()), \
+        "self-test failed: a target smaller than the source must turn the WHOLE sizing family RED"
 
     headroom_problems = verify_sizing(real, undersized, catalog)
     assert any("must never be smaller" in p for p in headroom_problems), \
@@ -185,8 +237,8 @@ def selftest():
     # is not a cheaper plan, it is a wrong one.
     tampered = json.loads(json.dumps(sized))
     tampered["waves"][0]["servers"][0]["cost"]["total_usd"] = 1.0
-    assert not check_sizing(real, tampered, catalog)["sizing-valid"], \
-        "self-test failed: a tampered total must be RED"
+    assert not any(check_sizing(real, tampered, catalog).values()), \
+        "self-test failed: a tampered total must turn the WHOLE sizing family RED"
 
     # Separate claim, separate assertion: the recommender picks the CHEAPEST
     # type that satisfies headroom. verify_sizing deliberately does not check
@@ -209,13 +261,56 @@ def selftest():
         assert "srv-huge" in str(error), \
             "self-test failed: the sizing error must name the server -> %s" % error
 
+    # ---- report family (IA-38) ----
+    # The whole plan as data, including the servers that could not be sized.
+    report = build_report(real, catalog)
+    good_report = check_report(real, report, catalog)
+    assert all(good_report.values()), \
+        "self-test failed: the report over a healthy inventory should hold -> %s" % good_report
+    assert report["complete"] and not report["errors"], \
+        "self-test failed: the example inventory should produce no errors"
+
+    # An inventory the catalog cannot fully host. It meets the CONTRACT — being
+    # too big for every instance type is the planner's problem, not the
+    # contract's, the same way a cycle is.
+    unsizeable = _load("fixtures/unsizeable.json")
+    assert not validate_inventory(unsizeable), \
+        "self-test failed: the unsizeable fixture must satisfy the contract"
+
+    partial = build_report(unsizeable, catalog)
+    assert partial["errors"], \
+        "self-test failed: a server no type can host must produce an error, not a crash"
+    assert not partial["complete"], \
+        "self-test failed: a report carrying errors must not claim to be complete"
+    assert any(e["id"] == "srv-db-01" for e in partial["errors"]), \
+        "self-test failed: the error must name the offending server -> %s" % partial["errors"]
+
+    # A PARTIAL report is still a VALID report: the other two servers are
+    # planned, the third is explained, and nothing is lost.
+    assert all(check_report(unsizeable, partial, catalog).values()), \
+        "self-test failed: a partial report is still valid if every server is accounted for -> %s" \
+        % check_report(unsizeable, partial, catalog)
+
+    # The negative that makes `errors` load-bearing instead of decorative:
+    # drop the failure record and keep the truncated plan. Nothing else changes.
+    # This is exactly what the starting MVP did — a report that always looked
+    # perfect because it could not report a problem.
+    silent = json.loads(json.dumps(partial))
+    silent["errors"] = []
+    silent["complete"] = True
+    silent_scores = check_report(unsizeable, silent, catalog)
+    assert not any(silent_scores.values()), \
+        "self-test failed: a server dropped with no error recorded must turn the WHOLE report family RED -> %s" \
+        % silent_scores
+
     print("self-test OK: the valid fixture passes; a dependency on a missing id is RED;")
     print("              duplicate ids and unknown roles are reported by name;")
     print("              the shipped example inventory satisfies its own contract;")
     print("              the plan satisfies the wave invariant, a swapped plan is RED,")
     print("              the plan is deterministic and independent of file order,")
     print("              a cyclic graph is reported by name instead of looping,")
-    print("              and no target is ever smaller than the server it replaces.")
+    print("              no target is ever smaller than the server it replaces,")
+    print("              and every server is either planned or explained by name.")
     print("  valid        :", good)
     print("  broken_deps  :", bad)
     print("               ->", broken_problems[0])
@@ -230,6 +325,12 @@ def selftest():
     print("  cycle        ->", " -> ".join(cycle_path))
     print("  sizing       :", good_sizing)
     print("  undersized   -> %s" % headroom_problems[0])
+    print("  provenance   :", good_provenance)
+    print("  report       :", good_report)
+    print("  partial      : %d planned, %d reported -> %s"
+          % (len(unsizeable) - len(partial["errors"]), len(partial["errors"]),
+             partial["errors"][0]["reason"]))
+    print("  silent drop  :", silent_scores, " <- both must be False")
     print("  total        : $%s USD/month, region %s, prices dated %s"
           % (sized["total_monthly_usd"], sized["region"], sized["pricing_snapshot_date"]))
     if not catalog["verified"]:

@@ -1,0 +1,8 @@
+[
+  {"id": "srv-app-01", "os": "linux", "cpu": 4, "ram": 8, "storage": 120,
+   "role": "app", "dependencies": ["srv-db-01"]},
+  {"id": "srv-db-01", "os": "linux", "cpu": 16, "ram": 64, "storage": 900,
+   "role": "db", "dependencies": []},
+  {"id": "srv-web-01", "os": "linux", "cpu": 2, "ram": 4, "storage": 40,
+   "role": "web", "dependencies": ["srv-app-01"]}
+]

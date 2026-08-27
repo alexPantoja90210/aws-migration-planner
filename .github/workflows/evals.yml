@@ -1,0 +1,62 @@
+# IA-38 — the GREEN/RED gate for the Migration Planner.
+#
+# One job, and no second one on purpose.
+#
+# The sibling repository (agentic-copilots) needs two jobs: a free gate on every
+# push, and a manual job that calls a real model and therefore costs money. This
+# planner has no such split because it never calls a model. Every decision it
+# makes — waves, instance types, cost — is derived deterministically from the
+# inventory and a dated price catalog.
+#
+# The consequence is worth stating plainly: this gate needs NO secrets, ever.
+# There is nothing here for a credential to unlock. If a future change to this
+# repository makes an API key necessary, that is a design change worth arguing
+# about, not a line to quietly add to this file.
+#
+# What the selftest asserts is both directions. A gate that only ever passes is
+# worthless, so each family has a deliberately corrupted artifact that must turn
+# the WHOLE family RED:
+#
+#   contract   — a dependency on an id that does not exist
+#   plan       — two servers swapped across waves; a server dropped
+#   sizing     — a target smaller than its source; a tampered total
+#   provenance — a catalog with its date removed
+#   report     — a server dropped from the plan with no error recorded
+#
+# Action versions were checked against the published releases rather than
+# assumed: checkout v6 and setup-python v6 are the current majors and both run
+# on Node 24. IA-33 exists because the sibling repository pinned versions that
+# silently went deprecated.
+
+name: evals
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: selftest
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # No dependency installation step, and that is not an oversight: the
+      # planner uses only the standard library. Nothing to install means nothing
+      # to pin, nothing to audit, and no supply chain in the gate.
+
+      - name: Run selftest
+        run: python evals.py --selftest
+
+      - name: Run the planner end to end
+        run: python planner.py

@@ -38,16 +38,76 @@ def load_inventory(path="inventory/servers.json"):
     return INVENTORY
 
 
+def build_report(servers, catalog):
+    """
+    Build the whole plan as data, collecting per-server failures instead of
+    aborting on the first one.
+
+    A planner that dies on one impossible server tells you nothing about the
+    other nine. One that quietly drops it is worse than both. So a failure is
+    recorded, named and counted — and `verify_report` refuses any report where
+    a server is neither planned nor explained.
+    """
+    errors = []
+    waves = plan_waves(servers)
+    sized = size_plan(servers, waves, catalog, errors=errors)
+    return {
+        "server_count": len(servers),
+        "waves": waves,
+        "sizing": sized,
+        "errors": errors,
+        "complete": not errors,
+    }
+
+
+def verify_report(servers, report, catalog):
+    """
+    Check a report without rebuilding it.
+
+    The property this exists for, stated once:
+
+        Every server in the inventory is accounted for — either it is in the
+        plan, or it is in `errors` with a reason that names it. Never neither,
+        never both.
+
+    Like every verifier in this repo, it never calls the builder. It also
+    refuses a report whose own summary contradicts its contents: claiming to be
+    complete while carrying errors is a lie a report should not be able to tell.
+    """
+    excused = [entry.get("id") for entry in report["errors"]]
+    problems = verify_waves(servers, report["waves"])
+    problems += verify_sizing(servers, report["sizing"], catalog, excused=excused)
+
+    for entry in report["errors"]:
+        for field in ("id", "stage", "reason"):
+            if not entry.get(field):
+                problems.append("an error entry is missing '%s': %r"
+                                % (field, entry))
+        if entry.get("id") and entry.get("reason") and entry["id"] not in entry["reason"]:
+            problems.append("the error recorded for %s does not name it in its "
+                            "reason: %r" % (entry["id"], entry["reason"]))
+
+    if report["complete"] != (not report["errors"]):
+        problems.append("the report claims complete=%s while carrying %d error(s)"
+                        % (report["complete"], len(report["errors"])))
+
+    if report["server_count"] != len(servers):
+        problems.append("the report claims %d servers, the inventory has %d"
+                        % (report["server_count"], len(servers)))
+
+    return problems
+
+
 if __name__ == "__main__":
     servers = load_inventory()
     print("Inventory loaded: %d servers, contract satisfied.\n" % len(servers))
 
-    waves = plan_waves(servers)
     role_of = {server["id"]: server["role"] for server in servers}
     needs_of = {server["id"]: server["dependencies"] for server in servers}
 
     catalog = load_catalog()
-    sized = size_plan(servers, waves, catalog)
+    report = build_report(servers, catalog)
+    sized = report["sizing"]
 
     for wave in sized["waves"]:
         print("Wave %d — %d server(s), $%s/month"
@@ -64,12 +124,20 @@ if __name__ == "__main__":
     print("Estimated target cost: $%s USD/month  (%s, on-demand, prices dated %s)"
           % (sized["total_monthly_usd"], sized["region"], sized["pricing_snapshot_date"]))
 
-    # The plan is checked before it is presented, using the same verifiers the
+    if report["errors"]:
+        print("Reported, not dropped — %d server(s) the catalog cannot host:"
+              % len(report["errors"]))
+        for entry in report["errors"]:
+            print("  - %s (%s): %s" % (entry["id"], entry["stage"], entry["reason"]))
+        print("")
+
+    # The report is checked before it is presented, using the same verifiers the
     # eval gate uses. Printing a plan without checking it is how a planner
     # starts being trusted for the wrong reasons.
-    problems = verify_waves(servers, waves) + verify_sizing(servers, sized, catalog)
-    print("Invariants: dependencies migrate first, and no target is smaller "
-          "than its source — %s" % ("HOLD" if not problems else "VIOLATED"))
+    problems = verify_report(servers, report, catalog)
+    print("Invariants: dependencies migrate first, no target is smaller than "
+          "its source, and every server is either planned or explained — %s"
+          % ("HOLD" if not problems else "VIOLATED"))
     for problem in problems:
         print("  - %s" % problem)
 

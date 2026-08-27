@@ -21,7 +21,7 @@ What is entirely real, and is what this project does:
 | Inventory validated against a contract | done |
 | Dependency graph, cycle detection, wave ordering | done |
 | Target sizing and monthly cost estimate | done |
-| GREEN/RED gate wired into CI | next |
+| GREEN/RED gate wired into CI | done |
 
 **The line: the decision layer is real. The data-movement layer is not
 promised.** Stating that up front is the point, not a disclaimer.
@@ -139,10 +139,69 @@ trivially, and a test that checks it would prove nothing** — the same trap tha
 hid a defect in the sibling project until a fixture with more than one item
 exposed it.
 
+## The evals gate
+
+`evals.py --selftest` scores five families. They are kept apart deliberately: a
+flawless inventory can still produce a terrible plan, and a plan can be correct
+while the prices behind its cost figure have no provenance at all. Collapsing
+those questions into one score makes the gate stop being honest.
+
+| Family | Question it answers |
+|---|---|
+| `contract` | Is the input usable at all? |
+| `plan` | Do the waves respect the dependency invariant, and is every server covered? |
+| `sizing` | Does every target respect the headroom rule, and do the figures add up? |
+| `provenance` | Does the price catalog say where its numbers came from? |
+| `report` | Is every server accounted for — planned, or failed with a named reason? |
+
+**The rule that governs a family:** a deliberately corrupted artifact must turn
+**every** check in its family RED. A check that cannot fail for the reason its
+family exists does not belong in it.
+
+That rule has teeth here. `pricing-declared` used to sit inside the sizing
+family, where a corrupted plan left it cheerfully GREEN — it measures the
+catalog, not the plan. It now has its own family. The same defect, in the same
+shape, is what IA-30 found in the sibling repository.
+
+### The negative tests
+
+Each family has an artifact built to fail, and the selftest requires it to:
+
+* **contract** — a server depending on an id that is not in the inventory.
+* **plan** — two servers swapped across waves, nothing else changed; and separately, a plan that simply forgets a server.
+* **sizing** — a target smaller than its source; and a total edited by hand.
+* **provenance** — a catalog with its `snapshot_date` removed.
+* **report** — a server dropped from the plan with **no error recorded for it**.
+
+That last one is the point of the whole family. The engine this project started
+from could not fail: its `try/except` caught nothing and its error list was dead
+code, so the report always came out perfect. **A report that cannot report a
+problem is evidence of nothing.**
+
+So a server the catalog cannot host is neither a crash nor a silent omission —
+it is recorded with its cause, the rest of the plan still gets built, and the
+report declares itself incomplete:
+
+```
+Reported, not dropped — 1 server(s) the catalog cannot host:
+  - srv-db-01 (sizing): srv-db-01 needs 16 vCPU and 64 GiB and no type in the catalog offers both
+```
+
+**Partial is not the same as silent.** A planner that dies on one impossible
+server tells you nothing about the others; one that quietly drops it is worse
+than both.
+
+### In CI
+
+The gate runs on every push and pull request. It **needs no secrets** — the
+planner never calls a model, so there is nothing here for a credential to
+unlock. The workflow also runs `planner.py` end to end, because a plan that
+imports cleanly and crashes on execution is not a working planner.
+
 ## Run it
 
 ```bash
-python evals.py --selftest   # free: validates the checks themselves
+python evals.py --selftest   # free: validates the checks themselves, both directions
 python planner.py            # waves, target sizing and estimated monthly cost
 ```
 
