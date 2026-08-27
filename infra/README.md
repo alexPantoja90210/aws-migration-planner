@@ -44,11 +44,24 @@ Each one came from the starting MVP, and each is commented where it lives.
 | 4 | No `aws_route_table_association` | A route table attached to nothing routes nothing. The subnet was "public" in its name and in the diagram only. |
 | 5 | No security group at all | Which means the default one, and dependence on nobody ever noticing. |
 
-**Not one of these is caught by `terraform validate`.** Every configuration
-above is syntactically valid and internally consistent. Defects 2 and 4 are not
-caught by `plan` either — they only surface at runtime, on an instance that
-looks healthy. That is the whole argument for reviewing a plan with your eyes
-instead of trusting a green check.
+### Which layer catches which
+
+| Defect | `validate` | `plan` | `apply` | Runtime |
+|---|---|---|---|---|
+| 1 · outputs referencing nothing | **caught** | — | — | — |
+| 3 · `t2.micro` | passes | passes | **fails** | — |
+| 5 · no security group | passes | passes | succeeds | **found by review, or by an incident** |
+| 2 · `apt-get` on Amazon Linux | passes | passes | succeeds | **silently does nothing** |
+| 4 · no route table association | passes | passes | succeeds | **unreachable subnet** |
+
+Only **one** of the five stops at the first layer — and it is the one that made
+the module look broken, which is the good case: it failed loudly and early.
+
+The other four pass `validate` untouched. Two of them pass `apply` as well and
+only appear once something is running: an instance that boots, reports healthy,
+and was never provisioned; a subnet called public with no way out. **A green
+check is evidence that the layer you ran had nothing to say — not that the
+configuration is right.**
 
 ---
 
