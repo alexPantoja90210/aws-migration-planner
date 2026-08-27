@@ -3,27 +3,98 @@
   "currency": "USD",
   "pricing_model": "on-demand, Linux, no pre-payment",
   "hours_per_month": 730,
-  "snapshot_date": "2026-08-25",
+  "snapshot_date": "2026-08-26",
   "source": "https://aws.amazon.com/ec2/pricing/on-demand/",
-  "verified": false,
-  "verification_note": "These figures were written from memory and have NOT been checked against the AWS pricing page. Verify every value, set verified to true, and update snapshot_date. Until then this file must not be presented as a costing source.",
+  "verified": true,
+  "verification_note": "Every figure in this file was checked by hand against the AWS pricing pages on 2026-08-26 for region us-east-1, Linux, on-demand: the 14 instance types against https://aws.amazon.com/ec2/pricing/on-demand/ and the gp3 rate against https://aws.amazon.com/ebs/pricing/. Prices AND specs (vCPU, RAM) were both checked, because a wrong spec misleads the rightsizing even when the price is right. No discrepancy was found. The verification and its evidence are recorded in IA-37. These are still a snapshot, not a live query: re-verify before presenting this as a costing figure to anyone.",
   "storage": {
     "gp3_usd_per_gb_month": 0.08
   },
   "instance_types": [
-    {"name": "t3.micro",    "vcpu": 2, "ram_gib": 1,  "usd_per_hour": 0.0104},
-    {"name": "t3.small",    "vcpu": 2, "ram_gib": 2,  "usd_per_hour": 0.0208},
-    {"name": "t3.medium",   "vcpu": 2, "ram_gib": 4,  "usd_per_hour": 0.0416},
-    {"name": "t3.large",    "vcpu": 2, "ram_gib": 8,  "usd_per_hour": 0.0832},
-    {"name": "t3.xlarge",   "vcpu": 4, "ram_gib": 16, "usd_per_hour": 0.1664},
-    {"name": "t3.2xlarge",  "vcpu": 8, "ram_gib": 32, "usd_per_hour": 0.3328},
-    {"name": "c5.large",    "vcpu": 2, "ram_gib": 4,  "usd_per_hour": 0.085},
-    {"name": "c5.xlarge",   "vcpu": 4, "ram_gib": 8,  "usd_per_hour": 0.17},
-    {"name": "c5.2xlarge",  "vcpu": 8, "ram_gib": 16, "usd_per_hour": 0.34},
-    {"name": "m5.large",    "vcpu": 2, "ram_gib": 8,  "usd_per_hour": 0.096},
-    {"name": "m5.xlarge",   "vcpu": 4, "ram_gib": 16, "usd_per_hour": 0.192},
-    {"name": "m5.2xlarge",  "vcpu": 8, "ram_gib": 32, "usd_per_hour": 0.384},
-    {"name": "r5.large",    "vcpu": 2, "ram_gib": 16, "usd_per_hour": 0.126},
-    {"name": "r5.xlarge",   "vcpu": 4, "ram_gib": 32, "usd_per_hour": 0.252}
-  ]
+    {
+      "name": "t3.micro",
+      "vcpu": 2,
+      "ram_gib": 1,
+      "usd_per_hour": 0.0104
+    },
+    {
+      "name": "t3.small",
+      "vcpu": 2,
+      "ram_gib": 2,
+      "usd_per_hour": 0.0208
+    },
+    {
+      "name": "t3.medium",
+      "vcpu": 2,
+      "ram_gib": 4,
+      "usd_per_hour": 0.0416
+    },
+    {
+      "name": "t3.large",
+      "vcpu": 2,
+      "ram_gib": 8,
+      "usd_per_hour": 0.0832
+    },
+    {
+      "name": "t3.xlarge",
+      "vcpu": 4,
+      "ram_gib": 16,
+      "usd_per_hour": 0.1664
+    },
+    {
+      "name": "t3.2xlarge",
+      "vcpu": 8,
+      "ram_gib": 32,
+      "usd_per_hour": 0.3328
+    },
+    {
+      "name": "c5.large",
+      "vcpu": 2,
+      "ram_gib": 4,
+      "usd_per_hour": 0.085
+    },
+    {
+      "name": "c5.xlarge",
+      "vcpu": 4,
+      "ram_gib": 8,
+      "usd_per_hour": 0.17
+    },
+    {
+      "name": "c5.2xlarge",
+      "vcpu": 8,
+      "ram_gib": 16,
+      "usd_per_hour": 0.34
+    },
+    {
+      "name": "m5.large",
+      "vcpu": 2,
+      "ram_gib": 8,
+      "usd_per_hour": 0.096
+    },
+    {
+      "name": "m5.xlarge",
+      "vcpu": 4,
+      "ram_gib": 16,
+      "usd_per_hour": 0.192
+    },
+    {
+      "name": "m5.2xlarge",
+      "vcpu": 8,
+      "ram_gib": 32,
+      "usd_per_hour": 0.384
+    },
+    {
+      "name": "r5.large",
+      "vcpu": 2,
+      "ram_gib": 16,
+      "usd_per_hour": 0.126
+    },
+    {
+      "name": "r5.xlarge",
+      "vcpu": 4,
+      "ram_gib": 32,
+      "usd_per_hour": 0.252
+    }
+  ],
+  "verified_by": "Alejandro Pantoja"
 }
