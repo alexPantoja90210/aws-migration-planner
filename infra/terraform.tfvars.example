@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is in .gitignore and
+# must never be committed: it carries the operator's public IP, and this is a
+# public repository.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+#   curl -s https://checkip.amazonaws.com     # your public IP
+
+ingress_cidr = "203.0.113.17/32" # RFC 5737 documentation address. Replace it.
+
+# Everything below has a working default. Uncomment only to override.
+# aws_region          = "us-east-1"
+# project_name        = "migration-target"
+# instance_type       = "t3.micro"
+# vpc_cidr            = "10.20.0.0/16"
+# public_subnet_cidr  = "10.20.1.0/24"
+# root_volume_size_gb = 8
