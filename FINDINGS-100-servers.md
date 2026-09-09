@@ -1,9 +1,18 @@
-# Running the Migration Planner against a real 100-server inventory
+# Benchmarking the Migration Planner against a real 100-server estate
 
-**9 September 2026.** A sanitised inventory from a real on-prem to AWS migration
-project — 100 servers, agreed across several IT teams through repeated review —
-was run through the planner. The inventory arrived with a wave plan already
-drawn by people. This is what the planner said about it.
+**9 September 2026.** A sanitised, flattened extract from a real on-prem to AWS
+migration project — 100 servers, agreed across several IT teams through repeated
+review — was run through the planner. It arrived with the wave plan drawn during
+that project.
+
+**Why this run exists.** A planning tool that only ever runs on a fixture proves
+nothing. Deciding whether it is worth anything needs a real estate and a decision
+already made by people who had context the tool does not. That is what this is:
+a benchmark, not an audit.
+
+**What this file is about.** It reports on *this extract*. The dependency mapping
+for that migration was done in the system of record, which this project has never
+seen. Nothing here is a statement about those records (IA-82).
 
 ---
 
@@ -14,65 +23,72 @@ drawn by people. This is what the planner said about it.
 | Servers | 100 |
 | Declared dependency edges | 44 |
 | Cycles in the graph | none |
-| Waves the humans drew | 4 |
-| Waves the dependencies support | **2** |
-| **Edges the human plan violates** | **44 of 44 — 100%** |
-| Target cost | **$11,976.85 / month · $143,722 / year** |
+| **Contract violations** — a dependency on a server absent from the inventory | **0** |
+| Waves in the drawn plan | 4 |
+| Waves the documented dependencies alone support | **2** |
+| **Documented dependencies the two orderings disagree on** | **44 of 44** |
+| Target cost **at public list prices** | **$11,976.85 / month · $143,722 / year** |
 
-Prices: us-east-1, on-demand, Linux, snapshot dated 2026-08-26, `verified: true`
-(checked by hand against the AWS pricing pages, specs as well as rates).
+Prices: us-east-1, on-demand, Linux, snapshot dated 2026-08-26, `verified: true`.
 
----
-
-## 1. The dependency column holds three different relations
-
-Only **44 of 100** rows use `Dependencias` to mean *what this server needs*.
-The rest use the same column for the opposite relation, or for something that is
-not a server at all:
-
-| Rows | What they wrote | What it actually means |
-| --- | --- | --- |
-| 40 Web/App, 4 Batch | `SRV-DB-PG-03` | **depends on** — usable |
-| 10 Postgres | `Web 21–22` | *consumed by* — the same edge, backwards |
-| 5 Oracle, 5 SQLite | `Web ERP`, `Dev` | *consumed by*, informally |
-| 20 FileServer | `Finanzas`, `RH`, `Ventas` | *used by a department* — not a server |
-| 4 Monitoring, 4 Logging | `Todos Web` | *watches* — a pattern, not an id |
-
-Only the first row is a dependency. The other 48 values were **dropped, not
-guessed at**, and the conversion records every one of them.
-
-### The duplicate is where the data drifted
-
-Because the relationship was written twice — once from each side — the two
-copies stopped agreeing:
-
-| Database | Its own row claims | Servers that actually declare it |
-| --- | --- | --- |
-| `SRV-DB-PG-01` … `PG-10` | 2 consumers | **4** |
-| `SRV-DB-PG-03` | 2 consumers | **8** |
-
-**Every database understates its own coupling by half. `PG-03` understates it by
-four times**, and four of its eight dependents are not web servers at all —
-they are the nightly batch processes.
-
-Read the database row to plan a cutover window, which is the natural thing to
-do, and you take down twice what you expected. On `PG-03`, four times, including
-batch jobs nobody mentioned.
-
-**This is the same defect as two others found in this project the same week:**
-a permission list maintained in two places that drifted (IA-46), and an IAM
-policy whose description promised more than the code enforced (IA-75). The fix
-is identical in all three — *state the relationship once, from one side, so it
-cannot drift from itself*.
+**What that flag certifies, precisely (IA-81):** the rates and the instance specs
+were checked by hand against the AWS pricing pages, so nothing was transcribed
+wrong. **It does not certify that the figure is what anyone pays.** These are
+public list prices. An estate of this size sits under a negotiated agreement, so
+the number is an upper bound on the target, not a quote.
 
 ---
 
-## 2. The human plan violates every dependency it has
+## 1. First result — the documented dependencies held
+
+The contract check ran before anything else, and it passed clean:
+
+| Check | Result |
+| --- | --- |
+| Servers ingested | 100 |
+| Dependencies resolving to a server that exists | **44 of 44** |
+| Contract violations | **0** |
+| Cycles in the graph | **none** |
+
+**This is a validation, and it is not a low bar.** The contract exists because
+the MVP audit of this same planner found *its own* graph pointing at 4 servers
+absent from the inventory. It is the class of problem this check hunts, and
+against this data it found none. The dependency mapping had been done in the
+system of record and it stood up to an instrument built to break it.
+
+### A note on reading a flattened extract — claimed about nothing else
+
+A CMDB stores a relationship once and derives both directions from it. A
+spreadsheet cannot: flattening a graph into rows means the same relationship has
+to be written from each side, and the written copies can disagree. In this
+extract the `Dependencias` column carries several relations at once:
+
+| Rows | What they wrote | How the converter reads it |
+| --- | --- | --- |
+| 40 Web/App, 4 Batch | `SRV-DB-PG-03` | **depends on** — resolves to a server, kept |
+| 10 Postgres | `Web 21–22` | the reverse direction, written from the other side |
+| 5 Oracle, 5 SQLite | `Web ERP`, `Dev` | reverse direction, informal |
+| 20 FileServer | `Finanzas`, `RH`, `Ventas` | a department, not a server |
+| 4 Monitoring, 4 Logging | `Todos Web` | a pattern, not an id |
+
+The converter keeps only values that resolve to a server in the inventory and
+**drops the other 48 rather than guessing at them**, counting and naming every
+one. That is a decision about how to read an export, recorded so it can be
+argued with.
+
+**It is not a finding about the estate.** The shape of a flattened column says
+nothing about the records it was flattened from, and this project has not seen
+them (IA-82).
+
+---
+
+## 2. Second result — two orderings, two different objectives
 
 The four waves group servers **by type**: infrastructure, then applications,
-then databases, then file servers. Grouping by type is what a spreadsheet does
-well. The problem is that the one real coupling in this estate runs the other
-way.
+then databases, then file servers. That is what a spreadsheet holds well — a
+**schedule**. The planner orders by dependency, which is what a graph holds — an
+**invariant**. The two are not competing answers to one question; they are
+answers to different ones.
 
 `verify_waves` knows nothing about how a plan was produced. Given the four waves
 as drawn, it returns:
@@ -93,10 +109,17 @@ SRV-WEB-01  is in wave 1 but depends on SRV-DB-PG-01, which is in wave 2
 * **4 batch servers** move in **wave 1 — the very first** — depending on a
   database that does not move until wave 3.
 
-Not some of the dependencies. **All forty-four.**
+Not some of the documented dependencies. **All forty-four.**
 
-The consequence is not academic: each of those servers either runs against
-on-prem across a hybrid link nobody budgeted, or does not run.
+**What that does and does not mean.** `verify_waves` reports against one rule and
+one rule only: nothing moves before what it depends on. It is blind to blast
+radius, team availability, change windows and internal policy — all of which a
+real wave plan carries and none of which exist in an inventory. So this is a
+disagreement between two orderings with different objectives, not a verdict on
+either.
+
+What it does establish is that the invariant is checkable in seconds, by a
+machine, against whatever plan people draw.
 
 ---
 
@@ -107,16 +130,16 @@ on-prem across a hybrid link nobody budgeted, or does not run.
 | 0 | 56 | all 20 databases, 20 file servers, monitoring, logging, tools, utility | $6,660.57 / mo |
 | 1 | 44 | 40 Web/App, 4 Batch | $5,316.28 / mo |
 
-**Two waves, not four** — because only one kind of coupling exists in this
-estate. The extra structure in the four-wave plan is real operational judgement
-(blast radius, team availability, change windows) and the planner does not
-model it. What the planner does say is that *whatever* the wave count, the
-databases have to move before the applications, and today they do not.
+**Two waves, not four** — because the documented dependencies describe one kind
+of coupling. The extra structure in the four-wave plan is real operational
+judgement the planner does not model, and two waves would be a worse plan to
+execute. What the planner contributes is narrower: *whatever* the wave count,
+the databases have to precede the applications that query them.
 
-Nothing declares a dependency on the 20 file servers or on the Oracle and
-SQLite instances: their listed "dependencies" are departments and informal
-labels. From a migration-ordering standpoint those 30 machines are free to move
-in any wave — which is useful scheduling slack the four-wave plan does not use.
+No dependency in this extract resolves onto the 20 file servers or the Oracle
+and SQLite instances. From a migration-ordering standpoint those 30 machines
+carry no ordering constraint *in this data*, which is schedulable slack — the
+kind of thing worth confirming against the source records before acting on it.
 
 ---
 
@@ -130,17 +153,38 @@ in any wave — which is useful scheduling slack the four-wave plan does not use
 
 Compute $10,476.85 (87%) · Storage $1,500.00 (13%) · **Total $11,976.85 / month**.
 
-### Two limits stated, not buried
+### Three limits stated, not buried
 
-1. **The prices are a dated snapshot**, not a live pricing API query. Re-verify
+1. **These are public list prices, not negotiated rates (IA-81).** Any
+   organisation running an estate this size pays less, by an amount this project
+   does not know. The figure is an upper bound, not a costing. **No discount is
+   modelled or estimated here** — inventing a percentage to make the number look
+   defensible would be a worse defect than the one it papers over.
+2. **The prices are a dated snapshot**, not a live pricing API query. Re-verify
    before presenting this to anyone as a costing figure.
-2. **Sizing comes from declared CPU/RAM, not measured utilisation.** On-prem is
+3. **Sizing comes from declared CPU/RAM, not measured utilisation.** On-prem is
    usually over-provisioned, so this figure is a **ceiling**. With real
    utilisation data it would very likely come down — which makes it a
    conservative estimate, and that is the point.
 
-There is no saving claimed here. This is the cost of the target. A saving needs
-what the current estate costs today, and that figure was not available.
+Limits 1 and 3 push the same way: list price is the highest price anyone pays
+and declared specs are the highest sizing anyone needs, so the figure is a
+**ceiling on both axes**.
+
+There is no saving claimed here. This is the cost of the target at list. A saving
+needs what the current estate costs today, and that figure was not available.
+
+---
+
+## What this run concludes
+
+**Neither ordering alone.** People keep owning the schedule, because the
+judgement in it is real and the planner is blind to it. A machine checks the
+invariant before anyone signs — seconds, and it fits in CI.
+
+That is a product recommendation. *"The plan violates 44 dependencies"* would
+not have been one, and stating it that way would have been a claim about people's
+work that this data does not support.
 
 ---
 
