@@ -7,6 +7,11 @@ a sized target, an estimated cost, and a gate that can be shown to go red.
 > **The pattern:** validated input → **decisions derived in code from the
 > source** → **eval gate with negative tests** → a human approves.
 
+**It has been run against a real 100-server estate**, alongside a wave plan drawn
+by five IT teams — which is what makes it possible to say whether the tool is
+worth anything. See [the benchmark run](#the-benchmark-run) and
+[`FINDINGS-100-servers.md`](FINDINGS-100-servers.md).
+
 ## What this is not
 
 This project **does not simulate AWS MGN or DMS**, and does not claim to.
@@ -20,8 +25,10 @@ What is entirely real, and is what this project does:
 |---|---|
 | Inventory validated against a contract | done |
 | Dependency graph, cycle detection, wave ordering | done |
-| Target sizing and monthly cost estimate | done |
+| Target sizing and list-price monthly cost estimate | done |
+| Checking a plan produced by anyone against the same invariant | done |
 | GREEN/RED gate wired into CI | done |
+| Run against a real 100-server estate | done |
 
 **The line: the decision layer is real. The data-movement layer is not
 promised.** Stating that up front is the point, not a disclaimer.
@@ -108,13 +115,20 @@ That the recommender picks the *cheapest* fitting type is a separate claim, and
 it gets a separate assertion — checking it inside the verifier would mean
 re-running the very thing under test.
 
-### Two limits, stated plainly
+### Three limits, stated plainly
 
-**The prices are a snapshot, not a live query.** `pricing/ec2-us-east-1.json`
-carries its region, its date, its source URL and a `verified` flag. The gate
-does not check whether the prices are *correct* — nothing in this repo can know
-that. It checks that the file says where they came from and whether a human has
-confirmed them. **A price with no date is not an estimate.**
+**The prices are public list prices, not negotiated rates.** Any organisation
+running an estate of real size pays less, by an amount this repo does not know
+and **will not estimate** — inventing a discount percentage to make the figure
+look defensible would be worse than the limitation it papers over. The number is
+an upper bound on the target, not a quote.
+
+**The prices are also a snapshot, not a live query.** `pricing/ec2-us-east-1.json`
+carries its region, its date, its source URL and a `verified` flag. Note exactly
+what that flag certifies: **that the rates and the instance specs were
+transcribed correctly.** It does not certify that the figure is what anyone pays.
+A boolean carries whatever meaning the reader brings to it, so this one says what
+it checked. **A price with no date is not an estimate.**
 
 **Sizing from declared CPU and RAM is a starting point, not a final
 recommendation.** With no real utilisation data this sizes against what was
@@ -127,7 +141,7 @@ That second limit is the seam with the sibling project: the
 reads actual CloudWatch utilisation from a live account. **This one predicts,
 that one measures.**
 
-## The example inventory
+## The two inventories
 
 `inventory/servers.json` holds **10 servers** across three dependency levels:
 six with no dependencies, three web servers on top of them, and one app server
@@ -138,6 +152,59 @@ The depth is not decoration. **On a flat graph the wave invariant holds
 trivially, and a test that checks it would prove nothing** — the same trap that
 hid a defect in the sibling project until a fixture with more than one item
 exposed it.
+
+`inventory/servers-100.json` holds a **sanitised extract from a real on-prem to
+AWS migration** — 100 servers, 44 documented dependency edges. It was added
+**alongside** the 10-server fixture, not in place of it. The fixture is the
+subject of the negative tests; swapping it for production data would have left
+the gate green while quietly removing what it proves.
+
+`convert_inventory.py` turns the source spreadsheet into the contract's shape. It
+keeps only values that resolve to a server in the inventory and **drops the rest
+rather than guessing at them**, counting and naming every one — so the decision
+is visible and arguable instead of silent.
+
+## The benchmark run
+
+A planning tool that only ever runs on a fixture proves nothing. Deciding whether
+it is worth anything needs **real data and a decision already made by people who
+had context the tool does not.**
+
+`inventory/servers-100.json` came with the four-wave plan drawn during the
+project it is an extract of. That made it something a fixture never is: a plan to
+compare against.
+
+**First result — the documented dependencies held.**
+
+| Check | Result |
+|---|---|
+| Servers ingested | 100 |
+| Dependencies resolving to a server that exists | **44 of 44** |
+| Contract violations | **0** |
+| Cycles in the graph | **none** |
+
+That is a validation, and it is not a low bar: the contract exists because this
+planner's own MVP audit found *its* graph pointing at four servers absent from
+the inventory. It is the class of problem the check hunts, and here it found none.
+
+**Second result — two orderings, two different objectives.**
+
+Across those 44 dependencies, `verify_waves` and the drawn plan disagree on all
+44. The drawn plan groups by type, because what a spreadsheet holds is a
+**schedule**. The planner orders by dependency, because what a graph holds is an
+**invariant**. They are not competing answers to one question.
+
+**The conclusion is neither one alone.** A real wave plan carries blast radius,
+team availability, change windows and internal policy — none of which exist in an
+inventory, and all of which this tool is blind to. So people keep owning the
+schedule, and a machine checks the invariant before anyone signs. Seconds, and it
+fits in CI.
+
+**What the run does not say.** It reports on *this extract*. The dependency
+mapping it derives from was done in a system of record this repo has never seen,
+and nothing here is a statement about those records. The full write-up, including
+what was deliberately not concluded, is in
+[`FINDINGS-100-servers.md`](FINDINGS-100-servers.md).
 
 ## The evals gate
 
@@ -202,7 +269,9 @@ imports cleanly and crashes on execution is not a working planner.
 
 ```bash
 python evals.py --selftest   # free: validates the checks themselves, both directions
-python planner.py            # waves, target sizing and estimated monthly cost
+python planner.py            # 10-server fixture: waves, sizing, list-price cost
+python planner.py --inventory inventory/servers-100.json   # the real 100-server estate
+python convert_inventory.py  # spreadsheet -> contract shape, dropped values named
 ```
 
 The selftest makes no network calls and needs no credentials, so it runs in CI
