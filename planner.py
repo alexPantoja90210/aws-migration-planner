@@ -7,6 +7,7 @@ waves, and sizes the target with an estimated monthly cost.
 Everything downstream reads the inventory through `load_inventory`, so nothing
 can ever run on data that does not meet the contract.
 """
+import argparse
 import json
 
 from inventory_contract import (
@@ -99,8 +100,18 @@ def verify_report(servers, report, catalog):
 
 
 if __name__ == "__main__":
-    servers = load_inventory()
-    print("Inventory loaded: %d servers, contract satisfied.\n" % len(servers))
+    # The inventory is a parameter, not a constant. It was hardcoded while the
+    # only inventory was the ten-server fixture; the moment a second one existed
+    # -- the real 100-server estate, IA-79 -- running it meant editing the code,
+    # and code edited to point at data is code nobody can reproduce a run from.
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--inventory", default="inventory/servers.json",
+                        help="path to the inventory JSON (default: %(default)s)")
+    args = parser.parse_args()
+
+    servers = load_inventory(args.inventory)
+    print("Inventory loaded from %s: %d servers, contract satisfied.\n"
+          % (args.inventory, len(servers)))
 
     role_of = {server["id"]: server["role"] for server in servers}
     needs_of = {server["id"]: server["dependencies"] for server in servers}

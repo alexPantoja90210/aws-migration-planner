@@ -1,0 +1,990 @@
+[
+  {
+    "id": "SRV-UTIL-01",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-02",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-03",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-UTIL-04",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-UTIL-05",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-06",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-07",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-08",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-09",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-10",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-11",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-UTIL-12",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-UTIL-13",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-14",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-15",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-16",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-17",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-18",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-19",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-UTIL-20",
+    "os": "windows",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "app",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-WEB-01",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-01"
+    ]
+  },
+  {
+    "id": "SRV-WEB-02",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-01"
+    ]
+  },
+  {
+    "id": "SRV-WEB-03",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-02"
+    ]
+  },
+  {
+    "id": "SRV-WEB-04",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-02"
+    ]
+  },
+  {
+    "id": "SRV-WEB-05",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-WEB-06",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-WEB-07",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-04"
+    ]
+  },
+  {
+    "id": "SRV-WEB-08",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-04"
+    ]
+  },
+  {
+    "id": "SRV-WEB-09",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-05"
+    ]
+  },
+  {
+    "id": "SRV-WEB-10",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-05"
+    ]
+  },
+  {
+    "id": "SRV-WEB-11",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-06"
+    ]
+  },
+  {
+    "id": "SRV-WEB-12",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-06"
+    ]
+  },
+  {
+    "id": "SRV-WEB-13",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-07"
+    ]
+  },
+  {
+    "id": "SRV-WEB-14",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-07"
+    ]
+  },
+  {
+    "id": "SRV-WEB-15",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-08"
+    ]
+  },
+  {
+    "id": "SRV-WEB-16",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-08"
+    ]
+  },
+  {
+    "id": "SRV-WEB-17",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-09"
+    ]
+  },
+  {
+    "id": "SRV-WEB-18",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-09"
+    ]
+  },
+  {
+    "id": "SRV-WEB-19",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-10"
+    ]
+  },
+  {
+    "id": "SRV-WEB-20",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-10"
+    ]
+  },
+  {
+    "id": "SRV-DB-PG-01",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-02",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-03",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-04",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-05",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-06",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-07",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-08",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-09",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-PG-10",
+    "os": "linux",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 200,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-ORCL-01",
+    "os": "linux",
+    "cpu": 8,
+    "ram": 32,
+    "storage": 300,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-ORCL-02",
+    "os": "linux",
+    "cpu": 8,
+    "ram": 32,
+    "storage": 300,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-ORCL-03",
+    "os": "linux",
+    "cpu": 8,
+    "ram": 32,
+    "storage": 300,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-ORCL-04",
+    "os": "linux",
+    "cpu": 8,
+    "ram": 32,
+    "storage": 300,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-ORCL-05",
+    "os": "linux",
+    "cpu": 8,
+    "ram": 32,
+    "storage": 300,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-SQLITE-01",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-SQLITE-02",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-SQLITE-03",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-SQLITE-04",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-DB-SQLITE-05",
+    "os": "linux",
+    "cpu": 2,
+    "ram": 4,
+    "storage": 50,
+    "role": "db",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-01",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-02",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-03",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-04",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-05",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-06",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-07",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-08",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-09",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-10",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-11",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-12",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-13",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-14",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-15",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-16",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-17",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-18",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-19",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-FS-20",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 16,
+    "storage": 500,
+    "role": "file",
+    "dependencies": []
+  },
+  {
+    "id": "SRV-WEB-21",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-06"
+    ]
+  },
+  {
+    "id": "SRV-WEB-22",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-06"
+    ]
+  },
+  {
+    "id": "SRV-WEB-23",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-07"
+    ]
+  },
+  {
+    "id": "SRV-WEB-24",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-07"
+    ]
+  },
+  {
+    "id": "SRV-WEB-25",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-08"
+    ]
+  },
+  {
+    "id": "SRV-WEB-26",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-08"
+    ]
+  },
+  {
+    "id": "SRV-WEB-27",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-09"
+    ]
+  },
+  {
+    "id": "SRV-WEB-28",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-09"
+    ]
+  },
+  {
+    "id": "SRV-WEB-29",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-10"
+    ]
+  },
+  {
+    "id": "SRV-WEB-30",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-10"
+    ]
+  },
+  {
+    "id": "SRV-WEB-31",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-01"
+    ]
+  },
+  {
+    "id": "SRV-WEB-32",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-01"
+    ]
+  },
+  {
+    "id": "SRV-WEB-33",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-02"
+    ]
+  },
+  {
+    "id": "SRV-WEB-34",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-02"
+    ]
+  },
+  {
+    "id": "SRV-WEB-35",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-WEB-36",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-03"
+    ]
+  },
+  {
+    "id": "SRV-WEB-37",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-04"
+    ]
+  },
+  {
+    "id": "SRV-WEB-38",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-04"
+    ]
+  },
+  {
+    "id": "SRV-WEB-39",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-05"
+    ]
+  },
+  {
+    "id": "SRV-WEB-40",
+    "os": "windows",
+    "cpu": 4,
+    "ram": 8,
+    "storage": 100,
+    "role": "web",
+    "dependencies": [
+      "SRV-DB-PG-05"
+    ]
+  }
+]
